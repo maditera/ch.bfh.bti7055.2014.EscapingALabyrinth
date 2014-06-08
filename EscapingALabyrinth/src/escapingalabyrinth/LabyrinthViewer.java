@@ -7,13 +7,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
-public class LabyrinthViewer implements ActionListener {
+public class LabyrinthViewer extends JFrame implements ActionListener {
 
 	private Labyrinth labyrinth;
 	private int labyrinthWidth;
 	private int labyrinthHeight;
 
-	private JFrame frame;
 	private JPanel controlPanel;
 	private JPanel drawPanel;
 	private JLabel lblStartPosX;
@@ -23,6 +22,7 @@ public class LabyrinthViewer implements ActionListener {
 	private JComboBox<Integer> cbStartPosY;
 	private JButton btnSolve;
 	private JButton btnReset;
+	private String fileName;
 
 	public static void main(String[] args) throws IOException {
 		String fileName = args[0];
@@ -57,25 +57,26 @@ public class LabyrinthViewer implements ActionListener {
 		// Display GUI
 		this.displayGUI();
 
+		// Set instance var fileName (used to reset the application)
+		this.fileName = fileName;
+
 	}
 
 	public void displayGUI() {
 
 		// Set frame and panels
-		this.frame = new JFrame();
-		this.frame.setTitle("Escaping a Labyrinth");
-		this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		//this.frame.setResizable(false);
+		this.setTitle("Escaping a Labyrinth");
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		BoxLayout boxLayout = new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS);
-		this.frame.setLayout(boxLayout);
+		BoxLayout boxLayout = new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS);
+		this.setLayout(boxLayout);
 
 		this.controlPanel = new JPanel();
 		this.controlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 
 		this.drawPanel = new JPanel();
-		this.frame.add(controlPanel);
-		this.frame.add(drawPanel);
+		this.add(controlPanel);
+		this.add(drawPanel);
 
 		// Create control components
 		this.lblStartPosX = new JLabel("X-Pos");
@@ -89,7 +90,7 @@ public class LabyrinthViewer implements ActionListener {
 		// Add action listener to buttons
 		this.btnSolve.addActionListener(this);
 		this.btnReset.addActionListener(this);
-		
+
 		// Fill the ComboBoxes with possible options
 		for (int i = 0; i < this.labyrinthWidth; i++) {
 			cbStartPosX.addItem(new Integer(i));
@@ -111,8 +112,8 @@ public class LabyrinthViewer implements ActionListener {
 		this.drawPanel.add(this.labyrinth);
 
 		// Finish up
-		this.frame.pack();
-		this.frame.setVisible(true);
+		this.pack();
+		this.setVisible(true);
 
 	}
 
@@ -123,54 +124,62 @@ public class LabyrinthViewer implements ActionListener {
 
 		// If solve button has been pressed
 		if (source.equals(this.btnSolve)) {
-
-			System.out.println("Solving labyrinth...");
-
-			// Get values from ComboBoxes
-			int startX = (int) this.cbStartPosX.getSelectedItem();
-			int startY = (int) this.cbStartPosY.getSelectedItem();
-
-			System.out.println("Start-X: " + startX);
-			System.out.println("Start-Y: " + startY);
-
-			// Create solver instance and solve labyrinth
-			LabyrinthSolver solver = new LabyrinthSolver(this.labyrinth);
-			boolean solvable = solver.solve(startX, startY);
-
-			System.out.println("Solvable: " + solvable);
-
-			if (solvable) {
-
-				// Set status label text
-				this.lblStatus.setText("Could solve labyrinth!");
-
-				// Create new labyrinth object based on solved structure
-				Labyrinth solvedLabyrinth = new Labyrinth(this.labyrinthWidth, this.labyrinthHeight, solver.getSolvedStructure());
-
-				// Add solved labyrinth;
-				this.drawPanel.add(solvedLabyrinth);
-				this.drawPanel.repaint();
-
-			} else {
-
-				// Set status label text
-				this.lblStatus.setText("Cannot solve labyrinth!");
-			}
-
+			this.solve();
 		}
-		
+
 		// If reset button has been pressed
 		if (source.equals(this.btnReset)) {
-			
-			System.out.println("Reset...");
-
-			
-//			// Set status label text
-//			this.lblStatus.setText("Choose a start position!");
-//			
-//			// Add original labyrinth;
-//			this.drawPanel.add(this.labyrinth);
-//			this.drawPanel.repaint();
+			this.reset();
 		}
+	}
+
+	private void solve() {
+
+		System.out.println("Solving labyrinth...");
+
+		// Get values from ComboBoxes
+		int startX = (int) this.cbStartPosX.getSelectedItem();
+		int startY = (int) this.cbStartPosY.getSelectedItem();
+
+		System.out.println("Start-X: " + startX);
+		System.out.println("Start-Y: " + startY);
+
+		// Create solver instance and solve labyrinth
+		LabyrinthSolver solver = new LabyrinthSolver(this.labyrinth);
+		boolean solvable = solver.solve(startX, startY);
+
+		System.out.println("Solvable: " + solvable);
+
+		if (solvable) {
+
+			// Set status label text
+			this.lblStatus.setText("Could solve labyrinth!");
+
+			// Create new labyrinth object based on solved structure
+			Labyrinth solvedLabyrinth = new Labyrinth(this.labyrinthWidth, this.labyrinthHeight, solver.getSolvedStructure());
+
+			// Add solved labyrinth;
+			this.drawPanel.add(solvedLabyrinth);
+			this.drawPanel.repaint();
+
+		} else {
+
+			// Set status label text
+			this.lblStatus.setText("Cannot solve labyrinth!");
+		}
+
+	}
+
+	private void reset() {
+
+		System.out.println("Reset...");
+
+		this.dispose();
+		try {
+			new LabyrinthViewer(this.fileName);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+
 	}
 }
